@@ -36,17 +36,6 @@ This repository should contain everything needed to get started running freshwat
 1. Whenever you want a clean file of your data, run the [tidying script](tidying.qmd).
    1. **Note:** Make sure to update site names and output paths to reflect your desired output.
 
-## Repository organization
-
-- `Standard-Checking.qmd`: inspect calibration standards and R-squared.
-- `concentration_calculation.qmd`: map wells to sample IDs and calculate
-  concentrations.
-- `tidying.qmd`: combine concentration outputs and apply project metadata.
-- `config.R`: shared paths and standard concentrations.
-- `Plates/`: user-supplied raw plate data and layout workbooks.
-- `Concentrations/`: generated output files.
-- `Procedures/`: laboratory procedures.
-
 ## Emphasizing the importance formating the key
 
 The `nitrate_key.xlsx` and `nitrite_key.xlsx` files are examples. Each workbook must use:
