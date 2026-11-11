@@ -1,5 +1,6 @@
 ---
 title: "Standard Checking"
+author: "Jaedon D. Swanson"
 format:
   html:
     embed-resources: true

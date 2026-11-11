@@ -1,5 +1,6 @@
 ---
 title: "Data Tidying"
+author: "Jaedon D. Swanson"
 format: html
 execute:
   eval: false

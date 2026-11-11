@@ -1,5 +1,6 @@
 ---
 title: "Concentration Calculation"
+author: "Jaedon D. Swanson"
 format:
   html:
     embed-resources: true
