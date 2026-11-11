@@ -11,7 +11,6 @@ This repository should contain everything needed to get started running freshwat
    - [Nitrate & Nitrite](Procedures/Microplate%20Analysis%20of%20Nitrate%20&%20Nitrite.md)
 2. Set up an Excel file to act as a key for the sample locations.
    1. If not formatted like [this key](Plates/nitrate_key.xlsx), the code following this will break as is.
-   2. Update `config.R` to reflect the path to these keys
 3. After the appropriate incubation time, analyze the plate.
    - If using Gen 5 software from BioTek you can load `Inoragnic-Nitrogen-Protocol.prt`
 4. After the plate is run, copy the data to a `.csv` and name it:
