@@ -1,0 +1,70 @@
+---
+title: "Standard Checking"
+format:
+  html:
+    embed-resources: true
+execute:
+  echo: true
+---
+
+```{r}
+library(tidyverse)
+source("config.R")
+```
+
+## User inputs
+
+Update these values for the plate being checked.
+
+```{r}
+plate <- "Plates/Nitrite/MMDDYYYY_nitrite_1.csv"
+use_high_range <- FALSE
+rows_to_drop <- integer(0)
+```
+
+```{r}
+data <- read.csv(plate, check.names = FALSE)
+if ("X" %in% names(data)) data$X <- NULL
+conc_vector <- if (use_high_range) N_HIGH else N_LOW
+
+standards_clean <- data %>%
+  select(1:3) %>%
+  setNames(c("Rep_1", "Rep_2", "Rep_3")) %>%
+  mutate(across(everything(), as.numeric),
+         Standard_Level = row_number(),
+         Concentration = conc_vector[Standard_Level],
+         Flagged = Standard_Level %in% rows_to_drop) %>%
+  pivot_longer(c(Rep_1, Rep_2, Rep_3),
+               names_to = "Replication",
+               values_to = "Absorbance") %>%
+  drop_na(Absorbance)
+
+standards_for_model <- filter(standards_clean, !Flagged)
+fit <- lm(Absorbance ~ Concentration, data = standards_for_model)
+r2 <- summary(fit)$r.squared
+
+cat("Range:", if (use_high_range) "high" else "low", "\n")
+cat("R-squared:", round(r2, 5), "\n")
+
+if (r2 < MIN_R2 && STOP_IF_LOW_R2) {
+  stop("Calibration R-squared is below the configured threshold.")
+}
+```
+
+```{r}
+ggplot(standards_clean, aes(Concentration, Absorbance)) +
+  geom_point(aes(color = Flagged)) +
+  geom_smooth(
+    data = standards_for_model,
+    method = "lm",
+    se = TRUE,
+    color = "black"
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Calibration curve",
+    subtitle = paste("R-squared =", round(r2, 4)),
+    x = "Concentration",
+    y = "Absorbance"
+  )
+```

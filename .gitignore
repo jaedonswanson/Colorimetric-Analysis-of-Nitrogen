@@ -1,0 +1,23 @@
+.Rhistory
+.Rapp.history
+.RData
+.RDataTmp
+.Ruserdata
+.Rproj.user/
+.Renviron
+*_cache/
+/cache/
+*.utf8.md
+*.knit.md
+
+# Local data and generated results
+Plates/*.xlsx
+Plates/Nitrate/*.csv
+Plates/Nitrite/*.csv
+Concentrations/Nitrate/*.csv
+Concentrations/Nitrite/*.csv
+tidied_data.csv
+
+# Keep the anonymized key examples in the template
+!Plates/nitrate_key.xlsx
+!Plates/nitrite_key.xlsx

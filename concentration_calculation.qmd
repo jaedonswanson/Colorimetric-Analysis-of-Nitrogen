@@ -1,0 +1,95 @@
+---
+title: "Concentration Calculation"
+format:
+  html:
+    embed-resources: true
+execute:
+  eval: false
+  echo: true
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+source("config.R")
+```
+
+## User inputs
+
+Use the same range and omitted standards as in `Standard-Checking.qmd`.
+
+```{r}
+plate <- "Plates/Nitrite/MMDDYYYY_nitrite_1.csv"
+high_range <- FALSE
+bad_standards <- integer(0)
+```
+
+```{r}
+raw_data <- read.csv(plate, check.names = FALSE)
+conc_vector <- if (high_range) N_HIGH else N_LOW
+
+standards <- raw_data %>%
+  select(2:4) %>%
+  setNames(c("Rep_1", "Rep_2", "Rep_3")) %>%
+  mutate(across(everything(), as.numeric),
+         Standard_Level = row_number(),
+         Concentration = conc_vector[Standard_Level],
+         Flagged = Standard_Level %in% bad_standards) %>%
+  pivot_longer(c(Rep_1, Rep_2, Rep_3),
+               names_to = "Replication",
+               values_to = "Absorbance") %>%
+  drop_na(Absorbance) %>%
+  filter(!Flagged)
+
+fit_model <- lm(Absorbance ~ Concentration, data = standards)
+slope <- coef(fit_model)[["Concentration"]]
+intercept <- coef(fit_model)[["(Intercept)"]]
+```
+
+```{r}
+is_nitrite <- grepl("nitrite", plate, ignore.case = TRUE)
+key_path <- if (is_nitrite) NITRITE_KEY_PATH else NITRATE_KEY_PATH
+
+file_base <- tools::file_path_sans_ext(basename(plate))
+name_parts <- str_split(file_base, "_")[[1]]
+if (length(name_parts) != 3) {
+  stop("Plate filename must be MMDDYYYY_nutrient_replication.csv.")
+}
+
+key_sheet_name <- paste0(name_parts[1], "_", name_parts[3])
+target_out_dir <- file.path(
+  "Concentrations",
+  if (is_nitrite) "Nitrite" else "Nitrate"
+)
+output_path <- file.path(target_out_dir, paste0(file_base, ".csv"))
+
+plate_long <- raw_data %>%
+  mutate(Row = LETTERS[seq_len(n())]) %>%
+  select(Row, matches("^X?[0-9]+$")) %>%
+  pivot_longer(-Row, names_to = "Column", values_to = "Absorbance") %>%
+  mutate(
+    Column = as.integer(str_extract(Column, "[0-9]+")),
+    Concentration = (Absorbance - intercept) / slope
+  )
+
+key_raw <- read_excel(key_path, sheet = key_sheet_name, .name_repair = "minimal")
+colnames(key_raw)[1] <- "Row"
+key_long <- key_raw %>%
+  select(Row, matches("^[0-9]+$")) %>%
+  pivot_longer(-Row, names_to = "Column", values_to = "Sample_ID") %>%
+  mutate(
+    Column = as.integer(Column),
+    Sample_ID = na_if(str_trim(Sample_ID), "")
+  ) %>%
+  drop_na(Sample_ID)
+
+final_well_data <- inner_join(key_long, plate_long, by = c("Row", "Column")) %>%
+  group_by(Sample_ID) %>%
+  mutate(Replication = row_number()) %>%
+  ungroup() %>%
+  select(Sample_ID, Replication, Row, Column, Absorbance, Concentration)
+
+dir.create(target_out_dir, recursive = TRUE, showWarnings = FALSE)
+write.csv(final_well_data, output_path, row.names = FALSE)
+cat("Saved:", output_path, "\n")
+```

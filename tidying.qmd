@@ -1,0 +1,45 @@
+---
+title: "Data Tidying"
+format: html
+execute:
+  eval: false
+  echo: true
+---
+
+```{r}
+library(tidyverse)
+```
+
+## Combine concentration outputs
+
+This section intentionally leaves study-specific classifications out of the
+template. Add them using the metadata columns required by your project.
+
+```{r}
+read_concentrations <- function(analyte) {
+  path <- file.path("Concentrations", analyte)
+  files <- list.files(path, pattern = "\\.csv$", full.names = TRUE)
+  if (length(files) == 0) {
+    stop("No concentration files found in ", path)
+  }
+
+  map_dfr(files, read_csv, show_col_types = FALSE) %>%
+    transmute(
+      sample_id = Sample_ID,
+      replication = Replication,
+      concentration = Concentration,
+      analyte = analyte
+    )
+}
+
+results <- bind_rows(
+  read_concentrations("Nitrate"),
+  read_concentrations("Nitrite")
+)
+
+write_csv(results, "tidied_data.csv")
+```
+
+For study-specific site names, event dates, dilution handling, and joins,
+create a separate project script rather than modifying the reusable analysis
+steps.
