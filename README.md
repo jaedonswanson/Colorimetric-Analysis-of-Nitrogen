@@ -1,5 +1,6 @@
 # Colorometric Analysis of Inorganic Nitrogen
 This repository should contain everything needed to get started running freshwater samples for inorganic nitrogen through colorometric methods on a microplate (elx800) or similar. This is an efficient and inexpensive method of measuring nutrient concentration in water, resin, or soil extracts.
+
 **A note on sample collection:** When collecting water samples, they should be filtered through a 0.45 micron filter. If the samples cannot be processed the same day, freeze or acidify them to prevent deterioriation.
 
 ## Part 1: Running the experiment
